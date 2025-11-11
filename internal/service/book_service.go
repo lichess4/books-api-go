@@ -23,7 +23,7 @@ func New(s store.Store) *Service {
 	}
 }
 
-func (s *Service) GetAllBooks() ([]*model.Book, error) {
+func (s *Service) GetAllBooks() ([]model.Book, error) {
 
 	//s.logger.Log("Fetching all books","")
 
@@ -33,26 +33,54 @@ func (s *Service) GetAllBooks() ([]*model.Book, error) {
 		return nil, err
 	}
 
-	return books, nil
+	// Convertir punteros a valores
+	result := make([]model.Book, len(books))
+	for i, b := range books {
+		if b != nil {
+			result[i] = *b
+		}
+	}
+	return result, nil
 }
 
-func (s *Service) GetBookByID(id int) (*model.Book, error) {
-	return s.store.GetByID(id)
+func (s *Service) GetBookByID(id int) (model.Book, error) {
+	book, err := s.store.GetByID(id)
+	if err != nil {
+		return model.Book{}, err
+	}
+	if book == nil {
+		return model.Book{}, errors.New("book not found")
+	}
+	return *book, nil
 }
 
-func (s *Service) CreateBook(book model.Book) (*model.Book, error) {
+func (s *Service) CreateBook(book model.Book) (model.Book, error) {
 	if book.Title == "" || book.Author == "" {
-		return nil, errors.New("missing required fields")
+		return model.Book{}, errors.New("missing required fields")
 	}
 
-	return s.store.Create(&book)
+	created, err := s.store.Create(&book)
+	if err != nil {
+		return model.Book{}, err
+	}
+	if created == nil {
+		return model.Book{}, errors.New("failed to create book")
+	}
+	return *created, nil
 }
 
-func (s *Service) UpdateBook(id int, book model.Book) (*model.Book, error) {
+func (s *Service) UpdateBook(id int, book model.Book) (model.Book, error) {
 	if book.Title == "" || book.Author == "" {
-		return nil, errors.New("missing required fields")
+		return model.Book{}, errors.New("missing required fields")
 	}
-	return s.store.Update(id, &book)
+	updated, err := s.store.Update(id, &book)
+	if err != nil {
+		return model.Book{}, err
+	}
+	if updated == nil {
+		return model.Book{}, errors.New("failed to update book")
+	}
+	return *updated, nil
 }
 
 func (s *Service) DeleteBook(id int) error {

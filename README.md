@@ -80,4 +80,3 @@ curl http://localhost:8000/books
 
 ---
 
-Si quieres, actualizo también el README en inglés o añado ejemplos de requests más completos (con curl/HTTPie/Postman).
